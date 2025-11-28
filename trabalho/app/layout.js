@@ -1,14 +1,14 @@
+import './globals.css';
+
 export const metadata = {
   title: 'Pizza Flowers',
-  description: 'Pizzas em formato de flores',
-}
+  description: 'Pizzas especiais em formato de flor',
+};
 
 export default function RootLayout({ children }) {
   return (
     <html lang="pt-BR">
-      <body style={{ margin: 0, fontFamily: 'Arial, sans-serif' }}>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
-  )
+  );
 }
