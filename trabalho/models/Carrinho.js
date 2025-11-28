@@ -1,33 +1,21 @@
-import { getDb } from '@/lib/mongodb';
-import { v4 as uuidv4 } from 'uuid';
+import mongoose from 'mongoose';
 
-export async function getItensCarrinho() {
-  const db = await getDb();
-  const itens = await db.collection('carrinho').find({}).toArray();
-  return itens;
-}
+const CarrinhoSchema = new mongoose.Schema(
+  {
+    id: { type: String, required: true },
+    pizzaId: { type: String, required: true },
+    nome: { type: String, required: true },
+    preco: { type: Number, required: true },
+    icone: { type: String, required: true },
+    quantidade: { type: Number, required: true },
+    criadoEm: { type: Date, required: true },
+  },
+  {
+    collection: 'carrinho',
+  }
+);
 
-export async function adicionarAoCarrinho(pizza) {
-  const db = await getDb();
-  const item = {
-    id: uuidv4(),
-    pizzaId: pizza.id,
-    nome: pizza.nome,
-    preco: pizza.preco,
-    icone: pizza.icone,
-    quantidade: 1,
-    criadoEm: new Date()
-  };
-  await db.collection('carrinho').insertOne(item);
-  return item;
-}
+const CarrinhoModel =
+  mongoose.models.Carrinho || mongoose.model('Carrinho', CarrinhoSchema);
 
-export async function removerDoCarrinho(itemId) {
-  const db = await getDb();
-  await db.collection('carrinho').deleteOne({ id: itemId });
-}
-
-export async function limparCarrinho() {
-  const db = await getDb();
-  await db.collection('carrinho').deleteMany({});
-}
+export default CarrinhoModel;

@@ -1,21 +1,19 @@
-import { getDb } from '@/lib/mongodb';
-import { v4 as uuidv4 } from 'uuid';
+import mongoose from 'mongoose';
 
-export async function criarUsuario(dados) {
-  const db = await getDb();
-  const usuario = {
-    id: uuidv4(),
-    nome: dados.nome,
-    email: dados.email,
-    telefone: dados.telefone,
-    criadoEm: new Date()
-  };
-  await db.collection('usuarios').insertOne(usuario);
-  return usuario;
-}
+const UsuarioSchema = new mongoose.Schema(
+  {
+    id: { type: String, required: true },
+    nome: { type: String, required: true },
+    email: { type: String, required: true },
+    telefone: { type: String, required: true },
+    criadoEm: { type: Date, required: true },
+  },
+  {
+    collection: 'usuarios',
+  }
+);
 
-export async function getUsuarios() {
-  const db = await getDb();
-  const usuarios = await db.collection('usuarios').find({}).toArray();
-  return usuarios;
-}
+const UsuarioModel =
+  mongoose.models.Usuario || mongoose.model('Usuario', UsuarioSchema);
+
+export default UsuarioModel;

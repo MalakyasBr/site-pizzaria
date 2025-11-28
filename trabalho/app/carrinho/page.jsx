@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Container from '@/components/Container';
@@ -21,10 +21,11 @@ export default function Carrinho() {
     });
   };
 
-  if (!carregado) {
-    carregarCarrinho();
-  }
-
+  useEffect(() => {
+    if (!carregado) {
+      carregarCarrinho();
+    }
+  }, [carregado]);
   const removerItem = async (itemId) => {
     await actionRemoverCarrinho(itemId);
     setMensagem('Item removido!');
@@ -44,27 +45,27 @@ export default function Carrinho() {
   return (
     <>
       <Navbar />
-      
+
       <section className="featured">
         <Container>
           <SectionTitle>🛒 Seu Carrinho</SectionTitle>
-          
+
           {mensagem && <div className="status-message show">{mensagem}</div>}
-          
+
           {itens.length === 0 ? (
             <p className="empty-cart">Seu carrinho está vazio</p>
           ) : (
             <>
               <div className="cart-list">
                 {itens.map((item) => (
-                  <CartItem 
-                    key={item.id} 
-                    item={item} 
+                  <CartItem
+                    key={item.id}
+                    item={item}
                     onRemover={removerItem}
                   />
                 ))}
               </div>
-              
+
               <div className="cart-total">
                 <h3>Total: R$ {total.toFixed(2)}</h3>
                 <Button onClick={limparTudo} tipo="secondary">Limpar Carrinho</Button>
@@ -73,7 +74,7 @@ export default function Carrinho() {
           )}
         </Container>
       </section>
-      
+
       <Footer />
     </>
   );

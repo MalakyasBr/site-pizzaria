@@ -2,6 +2,7 @@
 
 import Button from './Button';
 
+
 export default function PizzaCard({ pizza, onAdicionar }) {
   return (
     <div className="pizza-card">
@@ -13,3 +14,5 @@ export default function PizzaCard({ pizza, onAdicionar }) {
     </div>
   );
 }
+
+

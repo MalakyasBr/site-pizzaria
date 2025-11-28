@@ -1,8 +1,13 @@
 'use server';
 
-import { getPizzas, seedPizzas } from '@/models/Pizza';
-import { getItensCarrinho, adicionarAoCarrinho, removerDoCarrinho, limparCarrinho } from '@/models/Carrinho';
-import { criarUsuario } from '@/models/Usuario';
+import { getPizzas, seedPizzas } from '@/lib/pizzaDB';
+import {
+  getItensCarrinho,
+  adicionarAoCarrinho,
+  removerDoCarrinho,
+  limparCarrinho,
+} from '@/lib/carrinhoDB';
+import { criarUsuario } from '@/lib/usuarioDB';
 import { revalidatePath } from 'next/cache';
 
 export async function buscarPizzas() {
