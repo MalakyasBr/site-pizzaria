@@ -1,52 +1,62 @@
-import { getDatabase } from '../mongodb'
+import { obterBancoDeDados } from '../lib/mongodb'
 import { v4 as uuidv4 } from 'uuid'
 
-const COLLECTION = 'users'
+const COLECAO = 'usuarios'
 
-export async function createUser(userData) {
-  const db = await getDatabase()
-  const user = {
+// Criar novo usuário
+export async function criarUsuario(dadosUsuario) {
+  const bancoDados = await obterBancoDeDados()
+  
+  const usuario = {
     id: uuidv4(),
-    nome: userData.nome,
-    idade: parseInt(userData.idade),
-    cpf: userData.cpf,
-    email: userData.email,
-    senha: userData.senha,
-    createdAt: new Date(),
-    updatedAt: new Date()
+    nome: dadosUsuario.nome,
+    idade: parseInt(dadosUsuario.idade),
+    cpf: dadosUsuario.cpf,
+    email: dadosUsuario.email,
+    senha: dadosUsuario.senha,
+    criadoEm: new Date(),
+    atualizadoEm: new Date()
   }
   
-  await db.collection(COLLECTION).insertOne(user)
-  const { senha, _id, ...userWithoutPassword } = user
-  return userWithoutPassword
+  await bancoDados.collection(COLECAO).insertOne(usuario)
+  
+  // Retorna usuário sem senha e sem _id do MongoDB
+  const { senha, _id, ...usuarioSemSenha } = usuario
+  return usuarioSemSenha
 }
 
-export async function findUserByEmail(email) {
-  const db = await getDatabase()
-  return await db.collection(COLLECTION).findOne({ email })
+// Buscar usuário por email
+export async function buscarUsuarioPorEmail(email) {
+  const bancoDados = await obterBancoDeDados()
+  return await bancoDados.collection(COLECAO).findOne({ email })
 }
 
-export async function findUserByCpf(cpf) {
-  const db = await getDatabase()
-  return await db.collection(COLLECTION).findOne({ cpf })
+// Buscar usuário por CPF
+export async function buscarUsuarioPorCpf(cpf) {
+  const bancoDados = await obterBancoDeDados()
+  return await bancoDados.collection(COLECAO).findOne({ cpf })
 }
 
-export async function findUserById(id) {
-  const db = await getDatabase()
-  const user = await db.collection(COLLECTION).findOne({ id })
-  if (user) {
-    const { senha, _id, ...userWithoutPassword } = user
-    return userWithoutPassword
+// Buscar usuário por ID
+export async function buscarUsuarioPorId(id) {
+  const bancoDados = await obterBancoDeDados()
+  const usuario = await bancoDados.collection(COLECAO).findOne({ id })
+  
+  if (usuario) {
+    const { senha, _id, ...usuarioSemSenha } = usuario
+    return usuarioSemSenha
   }
   return null
 }
 
-export async function validateUserLogin(email, senha) {
-  const db = await getDatabase()
-  const user = await db.collection(COLLECTION).findOne({ email, senha })
-  if (user) {
-    const { senha, _id, ...userWithoutPassword } = user
-    return userWithoutPassword
+// Validar login
+export async function validarLoginUsuario(email, senha) {
+  const bancoDados = await obterBancoDeDados()
+  const usuario = await bancoDados.collection(COLECAO).findOne({ email, senha })
+  
+  if (usuario) {
+    const { senha, _id, ...usuarioSemSenha } = usuario
+    return usuarioSemSenha
   }
   return null
 }

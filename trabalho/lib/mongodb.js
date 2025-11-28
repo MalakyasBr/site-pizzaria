@@ -1,29 +1,32 @@
 import { MongoClient } from 'mongodb'
 
-const MONGO_URL = process.env.MONGO_URL
-const DB_NAME = process.env.DB_NAME || 'pizza_flowers'
+const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost:27017'
+const NOME_BANCO = process.env.NOME_BANCO || 'pizza_flowers'
 
-let client
-let clientPromise
+let cliente
+let promessaCliente
 
 if (!MONGO_URL) {
-  throw new Error('Please add your MongoDB URL to .env')
+  throw new Error('Por favor, adicione a URL do MongoDB no arquivo .env.local')
 }
 
 if (process.env.NODE_ENV === 'development') {
-  if (!global._mongoClientPromise) {
-    client = new MongoClient(MONGO_URL)
-    global._mongoClientPromise = client.connect()
+  // Em desenvolvimento, usa variável global para preservar a conexão entre hot reloads
+  if (!global._mongoClientePromise) {
+    cliente = new MongoClient(MONGO_URL)
+    global._mongoClientePromise = cliente.connect()
   }
-  clientPromise = global._mongoClientPromise
+  promessaCliente = global._mongoClientePromise
 } else {
-  client = new MongoClient(MONGO_URL)
-  clientPromise = client.connect()
+  // Em produção, cria nova conexão
+  cliente = new MongoClient(MONGO_URL)
+  promessaCliente = cliente.connect()
 }
 
-export async function getDatabase() {
-  const client = await clientPromise
-  return client.db(DB_NAME)
+// Função para obter o banco de dados
+export async function obterBancoDeDados() {
+  const cliente = await promessaCliente
+  return cliente.db(NOME_BANCO)
 }
 
-export default clientPromise
+export default promessaCliente

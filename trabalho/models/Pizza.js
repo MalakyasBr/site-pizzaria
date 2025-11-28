@@ -1,13 +1,13 @@
-import { getDatabase } from '../mongodb'
-import { v4 as uuidv4 } from 'uuid'
+import { obterBancoDeDados } from '../lib/mongodb'
 
-const COLLECTION = 'pizzas'
+const COLECAO = 'pizzas'
 
-const defaultPizzas = [
+// Pizzas padrão do sistema
+const pizzasPadrao = [
   {
     id: 'pizza-vegetariana',
     nome: 'Pizza Vegetariana Floral',
-    descricao: 'Uma explosão de sabores vegetais em formato de flor, com tomates cherry, rúcula, abobrinha e queijo de cabra.',
+    descricao: 'Tomates cherry, rúcula, abobrinha e queijo de cabra',
     preco: 35.90,
     icone: '🥬🌸',
     categoria: 'vegetariana'
@@ -15,7 +15,7 @@ const defaultPizzas = [
   {
     id: 'pizza-margherita',
     nome: 'Margherita Flor',
-    descricao: 'A clássica margherita reinventada em pétalas perfeitas, com molho de tomate artesanal, mussarela e manjericão fresco.',
+    descricao: 'Molho de tomate, mussarela e manjericão fresco',
     preco: 32.90,
     icone: '🍅🌸',
     categoria: 'tradicional'
@@ -23,7 +23,7 @@ const defaultPizzas = [
   {
     id: 'pizza-berry',
     nome: 'Berry Delight Floral',
-    descricao: 'Uma combinação única de frutas vermelhas, queijo brie, nozes e mel, criando uma flor comestível irresistível.',
+    descricao: 'Frutas vermelhas, queijo brie, nozes e mel',
     preco: 42.90,
     icone: '🫐🌸',
     categoria: 'especial'
@@ -31,7 +31,7 @@ const defaultPizzas = [
   {
     id: 'pizza-pepperoni',
     nome: 'Pepperoni Flower',
-    descricao: 'Pétalas de pepperoni crocante sobre mussarela derretida e molho especial da casa.',
+    descricao: 'Pepperoni crocante e mussarela derretida',
     preco: 38.90,
     icone: '🍖🌸',
     categoria: 'tradicional'
@@ -39,7 +39,7 @@ const defaultPizzas = [
   {
     id: 'pizza-quatro-queijos',
     nome: 'Quattro Formaggi Floral',
-    descricao: 'Blend harmonioso de gorgonzola, parmesão, mussarela e provolone em formato de flor.',
+    descricao: 'Gorgonzola, parmesão, mussarela e provolone',
     preco: 44.90,
     icone: '🧀🌸',
     categoria: 'especial'
@@ -47,38 +47,45 @@ const defaultPizzas = [
   {
     id: 'pizza-frango',
     nome: 'Frango Catupiry Flower',
-    descricao: 'Frango desfiado com catupiry cremoso, milho e azeitonas em pétalas douradas.',
+    descricao: 'Frango desfiado com catupiry, milho e azeitonas',
     preco: 36.90,
     icone: '🍗🌸',
     categoria: 'tradicional'
   }
 ]
 
-export async function initializePizzas() {
-  const db = await getDatabase()
-  const count = await db.collection(COLLECTION).countDocuments()
+// Inicializar pizzas padrão no banco
+export async function inicializarPizzas() {
+  const bancoDados = await obterBancoDeDados()
+  const quantidade = await bancoDados.collection(COLECAO).countDocuments()
   
-  if (count === 0) {
-    await db.collection(COLLECTION).insertMany(defaultPizzas.map(p => ({
-      ...p,
-      createdAt: new Date()
-    })))
+  if (quantidade === 0) {
+    await bancoDados.collection(COLECAO).insertMany(
+      pizzasPadrao.map(pizza => ({
+        ...pizza,
+        criadaEm: new Date()
+      }))
+    )
   }
 }
 
-export async function getAllPizzas() {
-  const db = await getDatabase()
-  await initializePizzas()
-  const pizzas = await db.collection(COLLECTION).find({}).toArray()
-  return pizzas.map(({ _id, ...rest }) => rest)
+// Buscar todas as pizzas
+export async function buscarTodasPizzas() {
+  const bancoDados = await obterBancoDeDados()
+  await inicializarPizzas()
+  
+  const pizzas = await bancoDados.collection(COLECAO).find({}).toArray()
+  return pizzas.map(({ _id, ...resto }) => resto)
 }
 
-export async function getPizzaById(id) {
-  const db = await getDatabase()
-  const pizza = await db.collection(COLLECTION).findOne({ id })
+// Buscar pizza por ID
+export async function buscarPizzaPorId(id) {
+  const bancoDados = await obterBancoDeDados()
+  const pizza = await bancoDados.collection(COLECAO).findOne({ id })
+  
   if (pizza) {
-    const { _id, ...rest } = pizza
-    return rest
+    const { _id, ...resto } = pizza
+    return resto
   }
   return null
 }

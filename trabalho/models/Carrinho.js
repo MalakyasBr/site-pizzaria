@@ -1,41 +1,49 @@
-import { getDatabase } from '../mongodb'
+import { obterBancoDeDados } from '../lib/mongodb'
 import { v4 as uuidv4 } from 'uuid'
 
-const COLLECTION = 'carts'
+const COLECAO = 'carrinhos'
 
-export async function getOrCreateCart(userId) {
-  const db = await getDatabase()
-  let cart = await db.collection(COLLECTION).findOne({ userId, status: 'active' })
+// Buscar ou criar carrinho do usuário
+export async function obterOuCriarCarrinho(idUsuario) {
+  const bancoDados = await obterBancoDeDados()
+  let carrinho = await bancoDados.collection(COLECAO).findOne({ 
+    idUsuario, 
+    status: 'ativo' 
+  })
   
-  if (!cart) {
-    cart = {
+  if (!carrinho) {
+    carrinho = {
       id: uuidv4(),
-      userId,
-      items: [],
-      status: 'active',
-      createdAt: new Date(),
-      updatedAt: new Date()
+      idUsuario,
+      itens: [],
+      status: 'ativo',
+      criadoEm: new Date(),
+      atualizadoEm: new Date()
     }
-    await db.collection(COLLECTION).insertOne(cart)
+    await bancoDados.collection(COLECAO).insertOne(carrinho)
   }
   
-  const { _id, ...rest } = cart
-  return rest
+  const { _id, ...resto } = carrinho
+  return resto
 }
 
-export async function addItemToCart(userId, pizza, quantidade = 1) {
-  const db = await getDatabase()
-  const cart = await getOrCreateCart(userId)
+// Adicionar item ao carrinho
+export async function adicionarItemAoCarrinho(idUsuario, pizza, quantidade = 1) {
+  const bancoDados = await obterBancoDeDados()
+  const carrinho = await obterOuCriarCarrinho(idUsuario)
   
-  const existingItemIndex = cart.items.findIndex(item => item.pizzaId === pizza.id)
+  const indiceItemExistente = carrinho.itens.findIndex(item => item.idPizza === pizza.id)
   
-  if (existingItemIndex >= 0) {
-    cart.items[existingItemIndex].quantidade += quantidade
-    cart.items[existingItemIndex].subtotal = cart.items[existingItemIndex].quantidade * pizza.preco
+  if (indiceItemExistente >= 0) {
+    // Atualiza quantidade se item já existe
+    carrinho.itens[indiceItemExistente].quantidade += quantidade
+    carrinho.itens[indiceItemExistente].subtotal = 
+      carrinho.itens[indiceItemExistente].quantidade * pizza.preco
   } else {
-    cart.items.push({
+    // Adiciona novo item
+    carrinho.itens.push({
       id: uuidv4(),
-      pizzaId: pizza.id,
+      idPizza: pizza.id,
       nome: pizza.nome,
       preco: pizza.preco,
       icone: pizza.icone,
@@ -44,66 +52,75 @@ export async function addItemToCart(userId, pizza, quantidade = 1) {
     })
   }
   
-  await db.collection(COLLECTION).updateOne(
-    { id: cart.id },
+  await bancoDados.collection(COLECAO).updateOne(
+    { id: carrinho.id },
     { 
       $set: { 
-        items: cart.items,
-        updatedAt: new Date()
+        itens: carrinho.itens,
+        atualizadoEm: new Date()
       } 
     }
   )
   
-  return cart
+  return carrinho
 }
 
-export async function updateCartItemQuantity(userId, itemId, quantidade) {
-  const db = await getDatabase()
-  const cart = await getOrCreateCart(userId)
+// Atualizar quantidade de item
+export async function atualizarQuantidadeItem(idUsuario, idItem, quantidade) {
+  const bancoDados = await obterBancoDeDados()
+  const carrinho = await obterOuCriarCarrinho(idUsuario)
   
-  const itemIndex = cart.items.findIndex(item => item.id === itemId)
+  const indiceItem = carrinho.itens.findIndex(item => item.id === idItem)
   
-  if (itemIndex >= 0) {
+  if (indiceItem >= 0) {
     if (quantidade <= 0) {
-      cart.items.splice(itemIndex, 1)
+      // Remove item se quantidade for zero ou negativa
+      carrinho.itens.splice(indiceItem, 1)
     } else {
-      cart.items[itemIndex].quantidade = quantidade
-      cart.items[itemIndex].subtotal = cart.items[itemIndex].quantidade * cart.items[itemIndex].preco
+      // Atualiza quantidade e subtotal
+      carrinho.itens[indiceItem].quantidade = quantidade
+      carrinho.itens[indiceItem].subtotal = 
+        carrinho.itens[indiceItem].quantidade * carrinho.itens[indiceItem].preco
     }
     
-    await db.collection(COLLECTION).updateOne(
-      { id: cart.id },
+    await bancoDados.collection(COLECAO).updateOne(
+      { id: carrinho.id },
       { 
         $set: { 
-          items: cart.items,
-          updatedAt: new Date()
+          itens: carrinho.itens,
+          atualizadoEm: new Date()
         } 
       }
     )
   }
   
-  return cart
+  return carrinho
 }
 
-export async function removeItemFromCart(userId, itemId) {
-  return updateCartItemQuantity(userId, itemId, 0)
+// Remover item do carrinho
+export async function removerItemDoCarrinho(idUsuario, idItem) {
+  return atualizarQuantidadeItem(idUsuario, idItem, 0)
 }
 
-export async function clearCart(userId) {
-  const db = await getDatabase()
-  await db.collection(COLLECTION).updateOne(
-    { userId, status: 'active' },
+// Limpar carrinho
+export async function limparCarrinho(idUsuario) {
+  const bancoDados = await obterBancoDeDados()
+  
+  await bancoDados.collection(COLECAO).updateOne(
+    { idUsuario, status: 'ativo' },
     { 
       $set: { 
-        items: [],
-        updatedAt: new Date()
+        itens: [],
+        atualizadoEm: new Date()
       } 
     }
   )
-  return await getOrCreateCart(userId)
+  
+  return await obterOuCriarCarrinho(idUsuario)
 }
 
-export async function getCartTotal(userId) {
-  const cart = await getOrCreateCart(userId)
-  return cart.items.reduce((total, item) => total + item.subtotal, 0)
+// Calcular total do carrinho
+export async function calcularTotalCarrinho(idUsuario) {
+  const carrinho = await obterOuCriarCarrinho(idUsuario)
+  return carrinho.itens.reduce((total, item) => total + item.subtotal, 0)
 }
