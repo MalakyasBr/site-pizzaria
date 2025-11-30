@@ -1,43 +1,82 @@
-import connectDB from '@/lib/connectDB';
-import CarrinhoModel from '@/models/Carrinho';
-import { v4 as uuidv4 } from 'uuid';
+'use server'
 
-export async function getItensCarrinho() {
-  await connectDB();
-  const itens = await CarrinhoModel.find().lean();
-  return itens;
+import connectDB from './connectDB';
+import { ItemCarrinho } from '@/models/ItemCarrinho';
+
+function getSessionId() {
+  return 'demo-session';
 }
 
-export async function adicionarAoCarrinho(pizza) {
-  if (!pizza) {
-    throw new Error('Pizza não foi enviada para adicionarAoCarrinho');
+async function buscarCarrinho() {
+  try {
+    await connectDB();
+    const sessionId = getSessionId();
+    const itens = await ItemCarrinho.find({ sessionId }).populate('pizzaId').lean();
+    
+    return itens.map(item => ({
+      id: item._id.toString(),
+      pizzaId: item.pizzaId?._id?.toString(),
+      nome: item.nome,
+      preco: item.preco,
+      quantidade: item.quantidade
+    }));
+  } catch (error) {
+    console.error('Erro ao buscar carrinho:', error);
+    return [];
   }
-
-  await connectDB();
-
-  const { id: pizzaId, nome, preco, icone } = pizza;
-
-  const item = new CarrinhoModel({
-    id: uuidv4(),
-    pizzaId: pizzaId ?? uuidv4(), // se por acaso não tiver id, gera um
-    nome,
-    preco,
-    icone,
-    quantidade: 1,
-    criadoEm: new Date(),
-  });
-
-  await item.save();
-
-  return item.toObject();
 }
 
-export async function removerDoCarrinho(itemId) {
-  await connectDB();
-  await CarrinhoModel.deleteOne({ id: itemId });
+async function adicionarAoCarrinho(pizza) {
+  try {
+    await connectDB();
+    const sessionId = getSessionId();
+    
+    const itemExistente = await ItemCarrinho.findOne({ 
+      sessionId, 
+      pizzaId: pizza.id 
+    });
+
+    if (itemExistente) {
+      itemExistente.quantidade += 1;
+      await itemExistente.save();
+    } else {
+      await ItemCarrinho.create({
+        sessionId,
+        pizzaId: pizza.id,
+        nome: pizza.nome,
+        preco: pizza.preco,
+        quantidade: 1
+      });
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Erro ao adicionar ao carrinho:', error);
+    return false;
+  }
 }
 
-export async function limparCarrinho() {
-  await connectDB();
-  await CarrinhoModel.deleteMany({});
+async function removerItemCarrinho(itemId) {
+  try {
+    await connectDB();
+    await ItemCarrinho.findByIdAndDelete(itemId);
+    return true;
+  } catch (error) {
+    console.error('Erro ao remover item:', error);
+    return false;
+  }
 }
+
+async function limparCarrinho() {
+  try {
+    await connectDB();
+    const sessionId = getSessionId();
+    await ItemCarrinho.deleteMany({ sessionId });
+    return true;
+  } catch (error) {
+    console.error('Erro ao limpar carrinho:', error);
+    return false;
+  }
+}
+
+export { buscarCarrinho, adicionarAoCarrinho, removerItemCarrinho, limparCarrinho };

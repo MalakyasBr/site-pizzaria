@@ -1,18 +1,34 @@
+'use server'
+
 import mongoose from 'mongoose';
 
-const PizzaSchema = new mongoose.Schema(
-  {
-    id: { type: String, required: true },
-    nome: { type: String, required: true },
-    descricao: { type: String, required: true },
-    preco: { type: Number, required: true },
-    icone: { type: String, required: true },
+const PizzaSchema = new mongoose.Schema({
+  nome: {
+    type: String,
+    required: true,
+    trim: true
   },
-  {
-    collection: 'pizzas',
+  ingredientes: [{
+    type: String,
+    required: true
+  }],
+  preco: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  imagem: {
+    type: String,
+    default: ''
+  },
+  categoria: {
+    type: String,
+    default: 'especial'
   }
-);
+}, {
+  timestamps: true
+});
 
-const PizzaModel = mongoose.models.Pizza || mongoose.model('Pizza', PizzaSchema);
+const Pizza = mongoose.models.Pizza || mongoose.model('Pizza', PizzaSchema);
 
-export default PizzaModel;
+export { Pizza };

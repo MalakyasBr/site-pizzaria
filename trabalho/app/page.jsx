@@ -7,13 +7,13 @@ import Hero from '@/components/Hero';
 import Container from '@/components/Container';
 import SectionTitle from '@/components/SectionTitle';
 import PizzaCard from '@/components/PizzaCard';
-import { buscarPizzas, actionAdicionarCarrinho } from './actions';
-//import { adicionarAoCarrinho } from '@/lib/carrinhoDB';
+import { buscarPizzas } from '@/lib/pizzaDB';
+import { adicionarAoCarrinho } from '@/lib/carrinhoDB';
 
 export default function Home() {
   const [pizzas, setPizzas] = useState([]);
   const [carregado, setCarregado] = useState(false);
-  const [mensagem, setMensagem] = useState('');
+
   useEffect(() => {
     if (!carregado) {
       buscarPizzas().then((data) => {
@@ -23,10 +23,13 @@ export default function Home() {
     }
   }, [carregado]);
 
-  const adicionarAoCarrinho = async (pizza) => {
-    await actionAdicionarCarrinho(pizza);
-    setMensagem(`${pizza.nome} adicionada ao carrinho!`);
-    setTimeout(() => setMensagem(''), 3000);
+  const handleAdicionarAoCarrinho = async (pizza) => {
+    const sucesso = await adicionarAoCarrinho(pizza);
+    if (sucesso) {
+      alert(`${pizza.nome} adicionada ao carrinho!`);
+    } else {
+      alert('Erro ao adicionar ao carrinho');
+    }
   };
 
   return (
@@ -36,9 +39,7 @@ export default function Home() {
         titulo="FLOWER PIZZAS"
         subtitulo="Pizzas especiais em formato de flor"
       />
-
-      {mensagem && <div className="status-message show">{mensagem}</div>}
-
+      
       <section className="featured">
         <Container>
           <SectionTitle>Nosso Cardápio</SectionTitle>
@@ -47,13 +48,12 @@ export default function Home() {
               <PizzaCard
                 key={pizza.id}
                 pizza={pizza}
-                onAdicionar={() => adicionarAoCarrinho()}
+                onAdicionar={() => handleAdicionarAoCarrinho(pizza)}
               />
             ))}
           </div>
         </Container>
       </section>
-
       <Footer />
     </>
   );

@@ -38,9 +38,4 @@ async function connectDB() {
   return cached.conn;
 }
 
-export async function getDb() {
-  const conn = await connectDB();
-  return conn.connection.db;
-}
-
 export default connectDB;

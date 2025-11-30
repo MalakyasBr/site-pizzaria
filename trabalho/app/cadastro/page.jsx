@@ -7,58 +7,64 @@ import Container from '@/components/Container';
 import SectionTitle from '@/components/SectionTitle';
 import Input from '@/components/Input';
 import Button from '@/components/Button';
-import { actionCadastrarUsuario } from '../actions';
 
-export default function Cadastro() {
+export default function Contato() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
-  const [telefone, setTelefone] = useState('');
   const [mensagem, setMensagem] = useState('');
+  const [enviado, setEnviado] = useState(false);
 
-  const handleCadastro = async () => {
-    await actionCadastrarUsuario({ nome, email, telefone });
-    setMensagem('Usuário cadastrado com sucesso!');
+  const handleEnviarMensagem = () => {
+    // Simulação de envio para demonstração
+    console.log({ nome, email, mensagem });
+    setEnviado(true);
     setNome('');
     setEmail('');
-    setTelefone('');
-    setTimeout(() => setMensagem(''), 3000);
+    setMensagem('');
+    setTimeout(() => setEnviado(false), 3000);
   };
 
   return (
     <>
       <Navbar />
-      
       <section className="featured">
         <Container>
-          <SectionTitle>Cadastro de Usuário</SectionTitle>
-          
-          {mensagem && <div className="status-message show">{mensagem}</div>}
-          
+          <SectionTitle>Entre em Contato</SectionTitle>
+
+          {enviado && (
+            <div className="status-message show">
+              Mensagem enviada com sucesso! (Demonstração)
+            </div>
+          )}
+
           <div className="form-container">
-            <Input 
-              label="Nome" 
-              valor={nome} 
-              onChange={setNome} 
+            <Input
+              label="Nome"
+              valor={nome}
+              onChange={setNome}
               placeholder="Seu nome"
             />
-            <Input 
-              label="Email" 
-              tipo="email" 
-              valor={email} 
-              onChange={setEmail} 
+            <Input
+              label="Email"
+              tipo="email"
+              valor={email}
+              onChange={setEmail}
               placeholder="seu@email.com"
             />
-            <Input 
-              label="Telefone" 
-              valor={telefone} 
-              onChange={setTelefone} 
-              placeholder="(51) 99999-9999"
-            />
-            <Button onClick={handleCadastro}>CADASTRAR</Button>
+            <div className="input-group">
+              <label>Mensagem</label>
+              <textarea
+                value={mensagem}
+                onChange={(e) => setMensagem(e.target.value)}
+                placeholder="Sua mensagem..."
+                rows="5"
+                className="input-field"
+              />
+            </div>
+            <Button onClick={handleEnviarMensagem}>ENVIAR MENSAGEM</Button>
           </div>
         </Container>
       </section>
-      
       <Footer />
     </>
   );

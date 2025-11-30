@@ -7,7 +7,7 @@ import Container from '@/components/Container';
 import SectionTitle from '@/components/SectionTitle';
 import CartItem from '@/components/CartItem';
 import Button from '@/components/Button';
-import { buscarCarrinho, actionRemoverCarrinho, actionLimparCarrinho } from '../actions';
+import { buscarCarrinho, limparCarrinho, removerItemCarrinho } from '@/lib/carrinhoDB';
 
 export default function Carrinho() {
   const [itens, setItens] = useState([]);
@@ -26,29 +26,27 @@ export default function Carrinho() {
       carregarCarrinho();
     }
   }, [carregado]);
-  const removerItem = async (itemId) => {
-    await actionRemoverCarrinho(itemId);
-    setMensagem('Item removido!');
-    setCarregado(false);
-    setTimeout(() => setMensagem(''), 2000);
-  };
 
-  const limparTudo = async () => {
-    await actionLimparCarrinho();
+  const handleLimparTudo = async () => {
+    await limparCarrinho();
     setMensagem('Carrinho limpo!');
     setCarregado(false);
     setTimeout(() => setMensagem(''), 2000);
   };
 
-  const total = itens.reduce((acc, item) => acc + item.preco, 0);
+  const handleRemoverItem = async (itemId) => {
+    await removerItemCarrinho(itemId);
+    setCarregado(false);
+  };
+
+  const total = itens.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
 
   return (
     <>
       <Navbar />
-
       <section className="featured">
         <Container>
-          <SectionTitle>🛒 Seu Carrinho</SectionTitle>
+          <SectionTitle>Seu Carrinho</SectionTitle>
 
           {mensagem && <div className="status-message show">{mensagem}</div>}
 
@@ -61,20 +59,21 @@ export default function Carrinho() {
                   <CartItem
                     key={item.id}
                     item={item}
-                    onRemover={removerItem}
+                    onRemover={handleRemoverItem}
                   />
                 ))}
               </div>
 
               <div className="cart-total">
                 <h3>Total: R$ {total.toFixed(2)}</h3>
-                <Button onClick={limparTudo} tipo="secondary">Limpar Carrinho</Button>
+                <Button onClick={handleLimparTudo} tipo="secondary">
+                  Limpar Carrinho
+                </Button>
               </div>
             </>
           )}
         </Container>
       </section>
-
       <Footer />
     </>
   );
