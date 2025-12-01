@@ -7,7 +7,7 @@ export default function Navbar() {
         <Link href="/" className="logo">🌸 PIZZA FLOWERS</Link>
         <ul className="main-nav">
           <li><Link href="/">Cardápio</Link></li>
-          <li><Link href="/cadastro">Cadastro</Link></li>
+          <li><Link href="/cadastro">Contato</Link></li>
           <li><Link href="/carrinho">🛒 Carrinho</Link></li>
         </ul>
       </nav>
